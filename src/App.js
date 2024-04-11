@@ -128,6 +128,11 @@ const EachToDo = ({ item, index,setTodos,allTodos }) => {
   const [title,setTitle]=useState(item.title)
   const [description,setDescription]=useState(item.description)
   const [isEditing,setIsEditing]=useState(false)
+  
+  useEffect(()=>{
+    setTitle(item.title)
+    setDescription(item.description)
+  },[item])
 
   const handleEdit=()=>{
     setIsEditing(true)
