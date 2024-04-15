@@ -1,75 +1,71 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import { AiOutlineDelete } from "react-icons/ai";
-import { AiOutlineEdit } from "react-icons/ai";
-import { BsCheckLg } from "react-icons/bs";
+import moment from "moment/moment";
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import DoneOutlineIcon from '@mui/icons-material/DoneOutline';
+import EditNoteIcon from '@mui/icons-material/EditNote';
+import CancelPresentationIcon from '@mui/icons-material/CancelPresentation';
 
 function App() {
-  const [isCompleteScreen, setIsCompleteScreen] = useState(false);
-  const [allTodos, setTodos] = useState( JSON.parse(localStorage.getItem("toDoListData"))||[]);
+  const [allTodos, setTodos] = useState(JSON.parse(localStorage.getItem("toDoListData")) || []);
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
-  const [completedTodos, setCompletedTodos] = useState([]);
-  const [currentEdit, setcurrentEdit] = useState("");
-  const [currentEditedItem, setcurrentEditedItem] = useState("");
+  const [newSchedule, setNewSchedule] = useState("");
+  const [showCompleted, setShowCompleted] = useState(false);
+  const [filteredData, setFilteredData] = useState([]);
 
   useEffect(() => {
     localStorage.setItem("toDoListData", JSON.stringify(allTodos));
   }, [allTodos]);
 
-  console.log(allTodos);
+   console.log(allTodos);
 
-  const handleAddTodo = () => {
-    let newTodoItem = {
-      title: newTitle,
-      description: newDescription,
-      isCompleted: false,
-      completedOn: null,
-      createdAt: new Date().getTime(),
-      id:new Date().getTime(),
-    };
-
-    setTodos((e) => [...e, newTodoItem]);
-    setNewTitle("");
-    setNewDescription("");
-  };
-const [showCompleted,setShowCompleted]=useState(false)
-const [filterdData,setFilteredData]=useState([])
-
-useEffect(()=>{
-    if(allTodos.length>0){
-
+  useEffect(()=>{
+     if(allTodos.length>0){
         if(showCompleted){
           let filtereCompleted=allTodos.filter(e=>{
              return e.isCompleted
           })
           setFilteredData(filtereCompleted)
-        }
-
-        else{
-            let filtereCompleted=allTodos.filter(e=>{
+        } else{
+            let filteredNotCompleted=allTodos.filter(e=>{
               return !e.isCompleted
           })
-          setFilteredData(filtereCompleted)
-        }
-
-    }
+          setFilteredData(filteredNotCompleted)
+        }     }
 
 },[allTodos,showCompleted])
 
+  const handleAddTodo = () => {
+    let truncatedDescription = newDescription;
+    let newTodoItem = {
+      title: newTitle,
+      description: truncatedDescription,
+      isCompleted: false,
+      completedOn: null,
+      createdAt: new Date().getTime(),
+      id:new Date().getTime(),
+      schedule:newSchedule,
+    };
 
-console.log('====================================');
-console.log('filterdData',filterdData);
-console.log('====================================');
+    setTodos((e) => [...e, newTodoItem]);
+    setNewTitle("");
+    setNewDescription("");
+    setNewSchedule("");
+  };
+// console.log('====================================');
+// console.log('filterdData',filteredData);
+// console.log('====================================');
 
-  return (
-    <div className="App">
-      <h1> Todos</h1>
-      <div className="todo-wrapper">
-        <div className="todo-input ">
-          <div className="todo-input-item">
-            <label>Title</label>
-            <input
+return (
+
+  <div className="App">
+    <h1> Todo List</h1>
+    <div className="todo-wrapper">
+      <div className="todo-input ">
+        <div className="todo-input-item">
+          <label>Title</label>
+             <input
               type="text"
               value={newTitle}
               onChange={(e) => setNewTitle(e.target.value)}
@@ -78,14 +74,23 @@ console.log('====================================');
           </div>
 
           <div className="todo-input-item">
-            <label>Description</label>
-            <input
-              type="text"
-              value={newDescription}
-              onChange={(e) => setNewDescription(e.target.value)}
-              placeholder="what is the task description?"
-            />
-          </div>
+          <label>Description</label>
+          <input
+            type="text"
+            value={newDescription}
+            onChange={(e) => setNewDescription(e.target.value)}
+            placeholder="What is the task description?"
+          />
+        </div>
+        <div className="todo-input-item">
+        <label>Scheduled Date</label>
+        <input
+          type="date"
+          value={newSchedule}
+          onChange={(e) => setNewSchedule(e.target.value)}
+          placeholder="When is your plan to finish the task?"
+        />
+      </div>
 
           <div className="todo-input-item">
             <button
@@ -94,6 +99,7 @@ console.log('====================================');
               onClick={handleAddTodo}
             >
               Add
+              
             </button>
           </div>
         </div>
@@ -114,7 +120,7 @@ console.log('====================================');
         </div>
 
         <div className="todo-list">
-          {filterdData.map((item, index) => {
+          {filteredData.map((item, index) => {
             return <EachToDo item={item} key={index} allTodos={allTodos} setTodos={setTodos} />;
           })}
         </div>
@@ -123,58 +129,52 @@ console.log('====================================');
   );
 }
 
-const EachToDo = ({ item, index,setTodos,allTodos }) => {
+const EachToDo = ({ item, allTodos, setTodos }) => {
+  const [title, setTitle] = useState(item.title);
+  const [description, setDescription] = useState(item.description);
+  const [isEditing, setIsEditing] = useState(false);
+  const [schedule, setSchedule] = useState(item.schedule);
+  const [showFullDescription, setShowFullDescription] = useState(false); 
 
-  const [title,setTitle]=useState(item.title)
-  const [description,setDescription]=useState(item.description)
-  const [isEditing,setIsEditing]=useState(false)
   
-  useEffect(()=>{
-    setTitle(item.title)
-    setDescription(item.description)
-  },[item])
+
 
   const handleEdit=()=>{
-    setIsEditing(true)
-  }
+    setIsEditing(true);
+    setShowFullDescription(true);
+  };
 
-  const updateValue=()=>{
-    setTodos(value=>value.map(e=>{
-       return e.id===item.id? {...e,title:title,description:description} : {...e}
-    }))
-    setIsEditing(false)
+  const updateValue = () => {
+    setTodos((value) =>
+      value.map((e) =>
+        e.id === item.id ? { ...e, title: title, description: description } : { ...e }
+      )
+    );
+    setIsEditing(false);
+    setShowFullDescription(false); // Add this line to show truncated description after updating
+  };
+  
 
-  }
+  const handleDeleteTodo = () => {
+    let filteredTodo = allTodos.filter(e => e.id !== item.id);
+    setTodos(filteredTodo);
+  };
 
-  const handleDeleteTodo=()=>{
-      let filterToDo=allTodos.filter(e=>{
-         return e.id!==item.id
-      })
 
-      setTodos(filterToDo)
-  }
-
-  const handleComplete=()=>{
-    if(!item.isCompleted){
-          setTodos(value=>value.map(e=>{
-            return e.id===item.id? {...e,isCompleted:true,completedOn:new Date().getTime()} : {...e}
-        }))
-
-    }
-    else{
-      setTodos(value=>value.map(e=>{
-        return e.id===item.id? {...e,isCompleted:false,completedOn:null} : {...e}
-    }))
-    }
-  }
-
+  const handleComplete = () => {
+    
+    let updatedTodos = allTodos.map(e =>
+      e.id === item.id ? { ...e, isCompleted: !e.isCompleted, completedOn: e.isCompleted ? null : new Date().getTime() } : { ...e }
+    );
+    setTodos(updatedTodos);
+  };
 
 
   return (
     <div className="todo-list-item">
       <div>
          {
-          isEditing?
+          isEditing? (
             <>
                <div>
                   <input
@@ -193,44 +193,62 @@ const EachToDo = ({ item, index,setTodos,allTodos }) => {
                     placeholder="what is the task description?"
                   />
                </div>
+
+               <div>
+               <input
+                   type="date"
+                   value={schedule}
+                   onChange={(e) => setSchedule(e.target.value)}
+                 />
+              </div>
                <div><button onClick={updateValue}>update</button></div>
             </>
-            :
+           )  :(
             <>
 
                 <h3>{title}</h3>
-                <p>{description}</p>
+                <p>{showFullDescription ? item.description : `${item.description.slice(0, 20)}...`}</p>
+                <hr />
                 <p>
-                  {item.isCompleted&&<small>Completed on: {item.completedOn}</small>}
-                  {<small> on: {item.createdAt}</small>}
-
-                </p>
-                <div>
-                    <AiOutlineDelete
-                      className="icon"
-                      onClick={handleDeleteTodo}
-                      title="Delete"
-                    />
-                    <BsCheckLg
-                      className="check-icon"
-                      onClick={handleComplete}
-                      title="Complete?"
-                    />
-                    <AiOutlineEdit
-                      className="check-icon"
-                      onClick={handleEdit}
-                      title="Edit?"
-                    />
-                </div>
-            </>
-         }
-        
-       
-      </div>
-
-     
-    </div>
-  );
+            <small>CreatedAt: {moment(item.createdAt).format("MMMM Do YYYY, h:mm:ss a")}</small><br></br>
+            <small>Scheduled for: {moment(item.schedule).format("MMMM Do YYYY, h:mm:ss a")}</small><br></br>
+            {item.isCompleted && (
+              <small>Completed On: {item.completedOn ? moment(item.completedOn).format("MMMM Do YYYY, h:mm:ss a") : ""}</small>
+            )}<br></br>
+          </p>
+          <div>
+          <DeleteOutlineIcon
+          className="icon" 
+          onClick={handleDeleteTodo} 
+          title="Delete" 
+          />
+          
+          {item.isCompleted ? (
+          <CancelPresentationIcon
+            className="check-icon"
+            onClick={handleComplete}
+            title="Mark as Incomplete"
+          />
+        ) : (
+          <DoneOutlineIcon
+            className="check-icon"
+            onClick={handleComplete}
+            title="Complete?"
+          />
+        )}
+          <EditNoteIcon 
+          className="check-icon" 
+          onClick={handleEdit} 
+          title="Edit?" 
+          />
+        </div>
+      </>
+    )}
+  </div>
+</div>
+);
 };
 
 export default App;
+
+
